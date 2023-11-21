@@ -41,7 +41,7 @@ module apb4_plic #(
 
 
   assign apb4.pready = 1'b1;
-  assign apb4.pslerr = 1'b0;
+  assign apb4.pslverr = 1'b0;
 
 endmodule
 
