@@ -14,16 +14,9 @@
 `include "register.sv"
 `include "plic_define.sv"
 
-module apb4_plic #(
-    parameter int IRQ_NUM        = 3,  // not larger than 1024, always plus irq0
-    parameter int IRQ_PRIO_WIDTH = 3
-) (
-    // verilog_format: off
-    apb4_if      apb4,
-    // verilog_format: on
-    input  logic rtc_irq_i,
-    input  logic wdg_irq_i,
-    output logic ext_irq_o
+module apb4_plic (
+    apb4_if     apb4,
+    plic_if.dut plic
 );
 
   logic [3:0] s_apb4_addr;
@@ -36,9 +29,8 @@ module apb4_plic #(
   logic [`PLIC_IE_WIDTH-1:0] s_plic_ie_d, s_plic_ie_q;
   logic [`PLIC_THOLD_WIDTH-1:0] s_plic_thold_d, s_plic_thold_q;
   logic [`PLIC_CLAIMCOMP_WIDTH-1:0] s_plic_claimcomp_d, s_plic_claimcomp_q;
-
-  logic [       IRQ_NUM-1:0] s_irq_dev;
-  logic [IRQ_PRIO_WIDTH-1:0] s_irq_prio[0:IRQ_NUM-1];
+  logic [`PLIC_CLAIMCOMP_WIDTH-1:0] s_irq_max_id;
+  logic [`PLIC_IRQ_NUM-1:0] s_irq_dev, s_irq_claim, s_irq_comp;
 
   assign s_apb4_addr = apb4.paddr[5:2];
   assign s_apb4_wr_hdshk = apb4.psel && apb4.penable && apb4.pwrite;
@@ -46,7 +38,29 @@ module apb4_plic #(
   assign apb4.pready = 1'b1;
   assign apb4.pslverr = 1'b0;
 
-  assign s_irq_dev = {wdg_irq_i, rtc_irq_i, 1'b0};  // irq0 must be tied to zero
+  assign s_irq_dev = {
+    plic.crc_irq_i,
+    plic.ps2_irq_i,
+    plic.vga_irq_i,
+    plic.usb_irq_i,
+    plic.qspi_irq_i[1],
+    plic.qspi_irq_i[0],
+    plic.spi_irq_i,
+    plic.i2s_irq_i,
+    plic.i2c_irq_i,
+    plic.tim_irq_i[3],
+    plic.tim_irq_i[2],
+    plic.tim_irq_i[1],
+    plic.tim_irq_i[0],
+    plic.wdg_irq_i,
+    plic.rtc_irq_i,
+    plic.pwm_irq_i[1],
+    plic.pwm_irq_i[0],
+    plic.gpio_irq_i,
+    plic.uart_irq_i[1],
+    plic.uart_irq_i[0],
+    1'b0
+  };
 
   assign s_plic_prio1_d = (s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO1) ? apb4.pwdata[`PLIC_PRIO1_WIDTH-1:0] : s_plic_prio1_q;
   dffr #(`PLIC_PRIO1_WIDTH) u_plic_prio1_dffr (
@@ -81,6 +95,24 @@ module apb4_plic #(
       s_plic_prio4_q
   );
 
+
+  for (genvar i = 1; i < `PLIC_IRQ_NUM; i++) begin
+    if (s_irq_valid[i] && (~s_plic_ip_q[i])) begin
+      assign s_plic_ip_d[i] = 1'b1;
+    end else if (s_irq_claim[i]) begin
+      assign s_plic_ip_d[i] = 1'b0;
+    end else begin
+      assign s_plic_ip_d[i] = s_plic_ip_q[i];
+    end
+  end
+
+  dffr #(`PLIC_IP_WIDTH) u_plic_ip_dffr (
+      apb4.pclk,
+      apb4.presetn,
+      s_plic_ip_d,
+      s_plic_ip_q
+  );
+
   assign s_plic_ie_d = (s_apb4_wr_hdshk && s_apb4_addr == `PLIC_IE) ? apb4.pwdata[`PLIC_IE_WIDTH-1:0] : s_plic_ie_q;
   dffr #(`PLIC_IE_WIDTH) u_plic_ie_dffr (
       apb4.pclk,
@@ -95,6 +127,19 @@ module apb4_plic #(
       apb4.presetn,
       s_plic_thold_d,
       s_plic_thold_q
+  );
+
+
+  for (genvar i = 1; i < `PLIC_IRQ_NUM; i++) begin
+    assign s_irq_comp[i] = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_CLAIMCOMP && apb4.pwdata[`PLIC_CLAIMCOMP_WIDTH-1:0] == i;
+    assign s_irq_claim[i] = s_apb4_rd_hdshk && s_apb4_addr == `PLIC_CLAIMCOMP && s_irq_max_id == i;
+  end
+
+  dffr #(`PLIC_CLAIMCOMP_WIDTH) u_plic_claimcomp_dffr (
+      apb4.pclk,
+      apb4.presetn,
+      s_plic_claimcomp_d,
+      s_plic_claimcomp_q
   );
 
   always_comb begin
@@ -113,15 +158,26 @@ module apb4_plic #(
       endcase
     end
   end
+
+  for (genvar i = 1; i < `PLIC_IRQ_NUM; i++) begin
+    gateway u_irq_gateway (
+        apb4.pclk,
+        apb4.presetn,
+        s_irq_dev[i],
+        s_irq_comp[i],
+        ~s_plic_ip_q[i],
+        s_irq_valid[i]
+    );
+  end
 endmodule
 
 module gateway (
     input  logic clk_i,
     input  logic rst_n_i,
     input  logic irq_i,
+    input  logic comp_i,
     input  logic ready_i,
-    output logic valid_o,
-    input  logic comp_i
+    output logic valid_o
 );
 
   logic s_mask_d, s_mask_q, s_hdshk;
@@ -130,26 +186,11 @@ module gateway (
   assign valid_o  = irq_i & (s_mask_q == 1'b0);
   assign s_mask_d = comp_i ? 1'b0 : (s_hdshk ? 1'b1 : s_mask_q);
 
-  dfflr u_mask_dfflr (
-      .clk_i,
-      .rst_n_i,
-      .en_i (comp_i | s_hdshk),
-      .dat_i(s_mask_d),
-      .dat_o(s_mask_q)
+  dffr u_mask_dfflr (
+      clk_i,
+      rst_n_i,
+      s_mask_d,
+      s_mask_q
   );
-
-  //   always_ff @(posedge clk_i, negedge rst_n_i) begin
-  //     if (~rst_n_i) begin
-  //       r_mask <= '0;
-  //     end else begin
-  //       if (comp_i) begin
-  //         r_mask <= 1'b0;
-  //       end else begin
-  //         if (s_hdshk) begin
-  //           r_mask <= 1'b1;
-  //         end
-  //       end
-  //     end
-  //   end
 
 endmodule

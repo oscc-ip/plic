@@ -48,7 +48,7 @@
  * PERMS:  | NONE | RW     |
  * ------------------------------------------
  * PLIC_CLAIMCOMP:
- * BITS:   | 31:1 | 0         |
+ * BITS:   | 31:5 | 4:0       |
  * FIELDS: | RES  | CLAIMCOMP |
  * PERMS:  | NONE | RW        |
  * ------------------------------------------
@@ -66,22 +66,43 @@
 `define PLIC_CLAIMCOMP 4'b1000 // BASEADDR + 0x20
 // verilog_format: on
 
-`define PLIC_PRIO1_ADDR     {26'b0, `PLIC_PRIO1    , 2'b00}
-`define PLIC_PRIO2_ADDR     {26'b0, `PLIC_PRIO2    , 2'b00}
-`define PLIC_PRIO3_ADDR     {26'b0, `PLIC_PRIO3    , 2'b00}
-`define PLIC_PRIO4_ADDR     {26'b0, `PLIC_PRIO4    , 2'b00}
-`define PLIC_IP_ADDR        {26'b0, `PLIC_IP       , 2'b00}
-`define PLIC_IE_ADDR        {26'b0, `PLIC_IE       , 2'b00}
-`define PLIC_THOLD_ADDR     {26'b0, `PLIC_THOLD    , 2'b00}
+`define PLIC_PRIO1_ADDR {26'b0, `PLIC_PRIO1    , 2'b00}
+`define PLIC_PRIO2_ADDR {26'b0, `PLIC_PRIO2    , 2'b00}
+`define PLIC_PRIO3_ADDR {26'b0, `PLIC_PRIO3    , 2'b00}
+`define PLIC_PRIO4_ADDR {26'b0, `PLIC_PRIO4    , 2'b00}
+`define PLIC_IP_ADDR {26'b0, `PLIC_IP       , 2'b00}
+`define PLIC_IE_ADDR {26'b0, `PLIC_IE       , 2'b00}
+`define PLIC_THOLD_ADDR {26'b0, `PLIC_THOLD    , 2'b00}
 `define PLIC_CLAIMCOMP_ADDR {26'b0, `PLIC_CLAIMCOMP, 2'b00}
 
-`define PLIC_PRIO1_WIDTH     32
-`define PLIC_PRIO2_WIDTH     32
-`define PLIC_PRIO3_WIDTH     32
-`define PLIC_PRIO4_WIDTH     32
-`define PLIC_IP_WIDTH        32
-`define PLIC_IE_WIDTH        32
-`define PLIC_THOLD_WIDTH     6
-`define PLIC_CLAIMCOMP_WIDTH 1
+// not larger than 1024, always plus irq0
+`define PLIC_IRQ_NUM 21 // 20 irq + irq0
+
+`define PLIC_PRIO1_WIDTH 32
+`define PLIC_PRIO2_WIDTH 32
+`define PLIC_PRIO3_WIDTH 32
+`define PLIC_PRIO4_WIDTH 32
+`define PLIC_IP_WIDTH `PLIC_IRQ_NUM
+`define PLIC_IE_WIDTH `PLIC_IRQ_NUM
+`define PLIC_THOLD_WIDTH 6
+`define PLIC_CLAIMCOMP_WIDTH 5
+
+interface plic_if ();
+  logic [1:0] uart_irq_i;
+  logic       gpio_irq_i;
+  logic [1:0] pwm_irq_i;
+  logic       rtc_irq_i;
+  logic       wdg_irq_i;
+  logic [3:0] tim_irq_i;
+  logic       i2c_irq_i;
+  logic       i2s_irq_i;
+  logic       spi_irq_i;
+  logic [1:0] qspi_irq_i;
+  logic       usb_irq_i;
+  logic       vga_irq_i;
+  logic       ps2_irq_i;
+  logic       crc_irq_i;
+  logic       ext_irq_o;
+endinterface
 
 `endif
