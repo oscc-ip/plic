@@ -15,15 +15,15 @@
 `include "plic_define.sv"
 
 module apb4_plic (
-    apb4_if     apb4,
-    plic_if.dut plic
+    apb4_if.slave apb4,
+    plic_if.dut   plic
 );
 
   logic [3:0] s_apb4_addr;
   logic s_apb4_wr_hdshk, s_apb4_rd_hdshk;
-  logic [`PLIC_PRIO1_WIDTH-1:0] s_plic_prio1_d, s_plic_prio1_q;
-  logic [`PLIC_PRIO2_WIDTH-1:0] s_plic_prio2_d, s_plic_prio2_q;
-  logic [`PLIC_PRIO3_WIDTH-1:0] s_plic_prio3_d, s_plic_prio3_q;
+  logic [`PLIC_PRIO_WIDTH-1:0] s_plic_prio1_d, s_plic_prio1_q;
+  logic [`PLIC_PRIO_WIDTH-1:0] s_plic_prio2_d, s_plic_prio2_q;
+  logic [`PLIC_PRIO_WIDTH-1:0] s_plic_prio3_d, s_plic_prio3_q;
   logic [`PLIC_IP_WIDTH-1:0] s_plic_ip_d, s_plic_ip_q;
   logic [`PLIC_IE_WIDTH-1:0] s_plic_ie_d, s_plic_ie_q;
   logic [`PLIC_THOLD_WIDTH-1:0] s_plic_thold_d, s_plic_thold_q;
@@ -42,10 +42,9 @@ module apb4_plic (
     plic.crc_irq_i,
     plic.ps2_irq_i,
     plic.vga_irq_i,
-    plic.usb_irq_i,
-    plic.qspi_irq_i[1],
-    plic.qspi_irq_i[0],
-    plic.spi_irq_i,
+    plic.qspi_irq_i,
+    plic.spi_irq_i[1],
+    plic.spi_irq_i[0],
     plic.i2s_irq_i,
     plic.i2c_irq_i,
     plic.tim_irq_i[3],
@@ -54,6 +53,7 @@ module apb4_plic (
     plic.tim_irq_i[0],
     plic.wdg_irq_i,
     plic.rtc_irq_i,
+    plic.pwm_irq_i[2],
     plic.pwm_irq_i[1],
     plic.pwm_irq_i[0],
     plic.gpio_irq_i,
@@ -64,25 +64,25 @@ module apb4_plic (
 
   assign plic.ext_irq_o = s_irq_max_id > s_plic_thold_q;
 
-  assign s_plic_prio1_d = (s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO1) ? apb4.pwdata[`PLIC_PRIO1_WIDTH-1:0] : s_plic_prio1_q;
-  dffr #(`PLIC_PRIO1_WIDTH) u_plic_prio1_dffr (
+  assign s_plic_prio1_d = (s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO1) ? apb4.pwdata[`PLIC_PRIO_WIDTH-1:0] : s_plic_prio1_q;
+  dffr #(`PLIC_PRIO_WIDTH) u_plic_prio1_dffr (
       apb4.pclk,
       apb4.presetn,
       s_plic_prio1_d,
       s_plic_prio1_q
   );
 
-  assign s_plic_prio2_d = (s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO2) ? apb4.pwdata[`PLIC_PRIO2_WIDTH-1:0] : s_plic_prio2_q;
+  assign s_plic_prio2_d = (s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO2) ? apb4.pwdata[`PLIC_PRIO_WIDTH-1:0] : s_plic_prio2_q;
 
-  dffr #(`PLIC_PRIO2_WIDTH) u_plic_prio2_dffr (
+  dffr #(`PLIC_PRIO_WIDTH) u_plic_prio2_dffr (
       apb4.pclk,
       apb4.presetn,
       s_plic_prio2_d,
       s_plic_prio2_q
   );
 
-  assign s_plic_prio3_d = (s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO3) ? apb4.pwdata[`PLIC_PRIO3_WIDTH-1:0] : s_plic_prio3_q;
-  dffr #(`PLIC_PRIO3_WIDTH) u_plic_prio3_dffr (
+  assign s_plic_prio3_d = (s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO3) ? apb4.pwdata[`PLIC_PRIO_WIDTH-1:0] : s_plic_prio3_q;
+  dffr #(`PLIC_PRIO_WIDTH) u_plic_prio3_dffr (
       apb4.pclk,
       apb4.presetn,
       s_plic_prio3_d,
@@ -158,9 +158,9 @@ module apb4_plic (
     apb4.prdata = '0;
     if (s_apb4_rd_hdshk) begin
       unique case (s_apb4_addr)
-        `PLIC_PRIO1:     apb4.prdata[`PLIC_PRIO1_WIDTH-1:0] = s_plic_prio1_q;
-        `PLIC_PRIO2:     apb4.prdata[`PLIC_PRIO2_WIDTH-1:0] = s_plic_prio2_q;
-        `PLIC_PRIO3:     apb4.prdata[`PLIC_PRIO3_WIDTH-1:0] = s_plic_prio3_q;
+        `PLIC_PRIO1:     apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio1_q;
+        `PLIC_PRIO2:     apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio2_q;
+        `PLIC_PRIO3:     apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio3_q;
         `PLIC_IP:        apb4.prdata[`PLIC_IP_WIDTH-1:0] = s_plic_ip_q;
         `PLIC_IE:        apb4.prdata[`PLIC_IE_WIDTH-1:0] = s_plic_ie_q;
         `PLIC_THOLD:     apb4.prdata[`PLIC_THOLD_WIDTH-1:0] = s_plic_thold_q;
@@ -180,28 +180,4 @@ module apb4_plic (
         s_irq_valid[i]
     );
   end
-endmodule
-
-module gateway (
-    input  logic clk_i,
-    input  logic rst_n_i,
-    input  logic irq_i,
-    input  logic comp_i,
-    input  logic ready_i,
-    output logic valid_o
-);
-
-  logic s_mask_d, s_mask_q, s_hdshk;
-
-  assign s_hdshk  = irq_i & ready_i;
-  assign valid_o  = irq_i & (s_mask_q == 1'b0);
-  assign s_mask_d = comp_i ? 1'b0 : (s_hdshk ? 1'b1 : s_mask_q);
-
-  dffr u_mask_dfflr (
-      clk_i,
-      rst_n_i,
-      s_mask_d,
-      s_mask_q
-  );
-
 endmodule
