@@ -13,9 +13,14 @@
 
 /* register mapping
  * PLIC_CTRL:
- * BITS:   | 31:4 | 3:1 | 0  |
- * FIELDS: | RES  | TNM | EN |
- * PERMS:  | NONE | RW  | RW |
+ * BITS:   | 31:PLIC_GWP_WIDTH+1 | PLIC_GWP_WIDTH:1 | 0  |
+ * FIELDS: | RES                 | TNM              | EN |
+ * PERMS:  | NONE                | RW               | RW |
+ * ------------------------------------------
+  * PLIC_TM:
+ * BITS:   | 31   | ... | 1   | 0   |
+ * FIELDS: | TM31 | ... | TM1 | TM0 |
+ * PERMS:  | RW   | ... | RW  | RW  |
  * ------------------------------------------
  * PLIC_PRIO1:
  * BITS:   | 31:28  | ... | 7:4    | 3:0    |
@@ -62,16 +67,18 @@
 // prority: 0~15
 // verilog_format: off
 `define PLIC_CTRL      4'b0000 // BASEADDR + 0x00
-`define PLIC_PRIO1     4'b0001 // BASEADDR + 0x04
-`define PLIC_PRIO2     4'b0010 // BASEADDR + 0x08
-`define PLIC_PRIO3     4'b0011 // BASEADDR + 0x0C
-`define PLIC_PRIO4     4'b0100 // BASEADDR + 0x10
-`define PLIC_IP        4'b0101 // BASEADDR + 0x14
-`define PLIC_IE        4'b0110 // BASEADDR + 0x18
-`define PLIC_THOLD     4'b0111 // BASEADDR + 0x1C
-`define PLIC_CLAIMCOMP 4'b1000 // BASEADDR + 0x20
+`define PLIC_TM        4'b0001 // BASEADDR + 0x04
+`define PLIC_PRIO1     4'b0010 // BASEADDR + 0x08
+`define PLIC_PRIO2     4'b0011 // BASEADDR + 0x0C
+`define PLIC_PRIO3     4'b0100 // BASEADDR + 0x10
+`define PLIC_PRIO4     4'b0101 // BASEADDR + 0x14
+`define PLIC_IP        4'b0110 // BASEADDR + 0x18
+`define PLIC_IE        4'b0111 // BASEADDR + 0x1C
+`define PLIC_THOLD     4'b1000 // BASEADDR + 0x20
+`define PLIC_CLAIMCOMP 4'b1001 // BASEADDR + 0x24
 
-`define PLIC_CTRL_ADDR      {26'b0, `PLIC_CTRL    , 2'b00}
+`define PLIC_CTRL_ADDR      {26'b0, `PLIC_CTRL     , 2'b00}
+`define PLIC_TM_ADDR        {26'b0, `PLIC_TM       , 2'b00}
 `define PLIC_PRIO1_ADDR     {26'b0, `PLIC_PRIO1    , 2'b00}
 `define PLIC_PRIO2_ADDR     {26'b0, `PLIC_PRIO2    , 2'b00}
 `define PLIC_PRIO3_ADDR     {26'b0, `PLIC_PRIO3    , 2'b00}
@@ -82,15 +89,21 @@
 `define PLIC_CLAIMCOMP_ADDR {26'b0, `PLIC_CLAIMCOMP, 2'b00}
 
 // not larger than 31+irq0
-`define PLIC_IRQ_NUM 32
-`define PLIC_IRQ_WID 5  // irq id width
+`define PLIC_IRQ_NUM   32
+`define PLIC_IRQ_WID   5  // irq id width
+`define PLIC_GWP_WIDTH 3  // max gateway edge trigger counter
 
 `define PLIC_CTRL_WIDTH      4
+`define PLIC_TM_WIDTH        32
 `define PLIC_PRIO_WIDTH      32
 `define PLIC_IP_WIDTH        `PLIC_IRQ_NUM
 `define PLIC_IE_WIDTH        `PLIC_IRQ_NUM
 `define PLIC_THOLD_WIDTH     `PLIC_IRQ_WID
 `define PLIC_CLAIMCOMP_WIDTH `PLIC_IRQ_WID
+
+`define PLIC_TM_LEVL 1'b0
+`define PLIC_TM_EDGE 1'b1
+
 // verilog_format: on
 
 interface plic_if ();
