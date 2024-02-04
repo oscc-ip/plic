@@ -35,20 +35,17 @@ module apb4_plic (
   logic s_plic_prio4_en;
   logic [`PLIC_IP_WIDTH-1:0] s_plic_ip_d, s_plic_ip_q;
   logic [`PLIC_IE_WIDTH-1:0] s_plic_ie_d, s_plic_ie_q;
+  logic s_plic_ie_en;
   logic [`PLIC_THOLD_WIDTH-1:0] s_plic_thold_d, s_plic_thold_q;
   logic s_plic_thold_en;
   logic [`PLIC_CLAIMCOMP_WIDTH-1:0] s_plic_claimcomp_d, s_plic_claimcomp_q;
-  logic [`PLIC_CLAIMCOMP_WIDTH-1:0] s_irq_max_id;
-  logic [`PLIC_IRQ_NUM-1:0] s_irq_dev, s_irq_claim, s_irq_comp;
+  logic [`PLIC_IRQ_NUM-1:0] s_irq_claim, s_irq_comp;
 
   assign s_apb4_addr     = apb4.paddr[5:2];
   assign s_apb4_wr_hdshk = apb4.psel && apb4.penable && apb4.pwrite;
   assign s_apb4_rd_hdshk = apb4.psel && apb4.penable && (~apb4.pwrite);
   assign apb4.pready     = 1'b1;
   assign apb4.pslverr    = 1'b0;
-
-  assign s_irq_dev       = plic.irq_i;
-  assign plic.ext_irq_o  = s_irq_max_id > s_plic_thold_q;
 
   assign s_plic_ctrl_en  = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_CTRL;
   assign s_plic_ctrl_d   = s_plic_ctrl_en ? apb4.pwdata[`PLIC_CTRL_WIDTH-1:0] : s_plic_ctrl_q;
@@ -110,15 +107,7 @@ module apb4_plic (
       s_plic_prio4_q
   );
 
-  for (genvar i = 1; i < `PLIC_IRQ_NUM; i++) begin
-    if (s_irq_valid[i] && (~s_plic_ip_q[i])) begin
-      assign s_plic_ip_d[i] = 1'b1;
-    end else if (s_irq_claim[i]) begin
-      assign s_plic_ip_d[i] = 1'b0;
-    end else begin
-      assign s_plic_ip_d[i] = s_plic_ip_q[i];
-    end
-  end
+  assign s_plic_ip_d = 1'b0;
   dffr #(`PLIC_IP_WIDTH) u_plic_ip_dffr (
       apb4.pclk,
       apb4.presetn,
@@ -126,14 +115,19 @@ module apb4_plic (
       s_plic_ip_q
   );
 
-  for (genvar i = 1; i < `PLIC_IRQ_NUM; i++) begin
-    if (s_apb4_wr_hdshk && s_apb4_addr == `PLIC_IE) begin
-      assign s_plic_ie_d[i] = apb4.pwdata[i];
+  assign s_plic_ie_en = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_IE;
+  for (genvar i = 0; i < `PLIC_IRQ_NUM; i++) begin
+    if (i == 0) begin
+      assign s_plic_ie_en[i] = 1'b0;
     end else begin
-      assign s_plic_ie_d[i] = s_plic_ie_q[i];
+      if (s_plic_ie_en) begin
+        assign s_plic_ie_d[i] = apb4.pwdata[i];
+      end else begin
+        assign s_plic_ie_d[i] = s_plic_ie_q[i];
+      end
     end
   end
-  dffr #(`PLIC_IE_WIDTH) u_plic_ie_dffr (
+  dffer #(`PLIC_IE_WIDTH) u_plic_ie_dffer (
       apb4.pclk,
       apb4.presetn,
       s_plic_ie_d,
@@ -183,6 +177,17 @@ module apb4_plic (
 
   plic_core u_plic_core (
       .clk_i  (apb4.pclk),
-      .rst_n_i(apb4.presetn)
+      .rst_n_i(apb4.presetn),
+      .tm_i   (),
+      .tnm_i  (),
+      .ie_i   (),
+      .prio_i (),
+      .thold_i(),
+      .clam_i (),
+      .comp_i (),
+      .ip_o   (),
+      .idx_o  (),
+      .irq_i  (plic.irq_i),
+      .irq_o  (plic.irq_o)
   );
 endmodule

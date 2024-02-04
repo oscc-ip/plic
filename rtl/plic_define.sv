@@ -111,7 +111,7 @@
 
 interface plic_if ();
   logic [`PLIC_IRQ_NUM-1:0] irq_i;
-  logic                     ext_irq_o;
+  logic                     irq_o;
 endinterface
 
 `endif
