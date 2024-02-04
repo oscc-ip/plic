@@ -47,7 +47,7 @@
 `include "register.sv"
 `include "edge_det.sv"
 
-module gateway (
+module plic_gateway (
     input  logic                       clk_i,
     input  logic                       rst_n_i,
     input  logic                       irq_i,

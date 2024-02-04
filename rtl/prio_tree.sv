@@ -52,7 +52,7 @@ module prio_tree #(
     parameter int HIG_IDX = `PLIC_IRQ_NUM
 ) (
     input  logic [`PLIC_PRIO_WIDTH-1:0] prio_i[`PLIC_IRQ_NUM],
-    input  logic [   `PLIC_IRQ_WID-1:0] idx_i [`PLIC_IRQ_NUM],
+    input  logic [ `PLIC_IRQ_WIDTH-1:0] idx_i [`PLIC_IRQ_NUM],
     output logic [`PLIC_PRIO_WIDTH-1:0] prio_o,
     output logic [ `PLIC_IRQ_WIDTH-1:0] idx_o
 );

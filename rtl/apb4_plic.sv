@@ -40,7 +40,6 @@ module apb4_plic (
   logic [`PLIC_CLAIMCOMP_WIDTH-1:0] s_plic_claimcomp_d, s_plic_claimcomp_q;
   logic [`PLIC_CLAIMCOMP_WIDTH-1:0] s_irq_max_id;
   logic [`PLIC_IRQ_NUM-1:0] s_irq_dev, s_irq_claim, s_irq_comp;
-  logic [`PLIC_IRQ_NUM-1:0][`PLIC_IRQ_WID-1:0] s_irq_prio_lut_d, s_irq_prio_lut_q;
 
   assign s_apb4_addr     = apb4.paddr[5:2];
   assign s_apb4_wr_hdshk = apb4.psel && apb4.penable && apb4.pwrite;
@@ -70,7 +69,6 @@ module apb4_plic (
       s_plic_tm_d,
       s_plic_tm_q
   );
-
 
   assign s_plic_prio1_en = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO1;
   assign s_plic_prio1_d  = s_plic_prio1_en ? apb4.pwdata[`PLIC_PRIO_WIDTH-1:0] : s_plic_prio1_q;
@@ -152,7 +150,6 @@ module apb4_plic (
       s_plic_thold_q
   );
 
-
   for (genvar i = 1; i < `PLIC_IRQ_NUM; i++) begin
     assign s_irq_comp[i] = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_CLAIMCOMP && apb4.pwdata[`PLIC_CLAIMCOMP_WIDTH-1:0] == i;
     assign s_irq_claim[i] = s_apb4_rd_hdshk && s_apb4_addr == `PLIC_CLAIMCOMP && s_irq_max_id == i;
@@ -162,17 +159,6 @@ module apb4_plic (
       apb4.presetn,
       s_plic_claimcomp_d,
       s_plic_claimcomp_q
-  );
-
-  // 1 ~ 20
-  for (genvar i = 1; i < `PLIC_IRQ_WID; i++) begin
-    assign s_irq_prio_lut_d[i] = {};
-  end
-  dffr #(`PLIC_IRQ_NUM * `PLIC_IRQ_WID) u_irq_prio_lut_dffr (
-      apb4.pclk,
-      apb4.presetn,
-      s_irq_prio_lut_d,
-      s_irq_prio_lut_q
   );
 
   always_comb begin
@@ -194,14 +180,9 @@ module apb4_plic (
     end
   end
 
-  for (genvar i = 1; i < `PLIC_IRQ_NUM; i++) begin
-    gateway u_irq_gateway (
-        apb4.pclk,
-        apb4.presetn,
-        s_irq_dev[i],
-        s_irq_comp[i],
-        ~s_plic_ip_q[i],
-        s_irq_valid[i]
-    );
-  end
+
+  plic_core u_plic_core (
+      .clk_i  (apb4.pclk),
+      .rst_n_i(apb4.presetn)
+  );
 endmodule

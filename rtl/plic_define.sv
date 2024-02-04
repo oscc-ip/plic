@@ -89,17 +89,20 @@
 `define PLIC_CLAIMCOMP_ADDR {26'b0, `PLIC_CLAIMCOMP, 2'b00}
 
 // not larger than 31+irq0
-`define PLIC_IRQ_NUM   32
-`define PLIC_IRQ_WID   5  // irq id width
-`define PLIC_GWP_WIDTH 3  // max gateway edge trigger counter
+`define PLIC_IRQ_NUM    31+1
+`define PLIC_PRIO_LEV   16
+`define PLIC_GWP_WIDTH  3  // max gateway edge trigger counter
+`define PLIC_IRQ_WIDTH  $clog2(`PLIC_IRQ_NUM)  // irq id width
+`define PLIC_PRIO_WIDTH $clog2(`PLIC_PRIO_LEV)
+
 
 `define PLIC_CTRL_WIDTH      4
-`define PLIC_TM_WIDTH        32
+`define PLIC_TM_WIDTH        `PLIC_IRQ_NUM
 `define PLIC_PRIO_WIDTH      32
 `define PLIC_IP_WIDTH        `PLIC_IRQ_NUM
 `define PLIC_IE_WIDTH        `PLIC_IRQ_NUM
-`define PLIC_THOLD_WIDTH     `PLIC_IRQ_WID
-`define PLIC_CLAIMCOMP_WIDTH `PLIC_IRQ_WID
+`define PLIC_THOLD_WIDTH     `PLIC_IRQ_WIDTH
+`define PLIC_CLAIMCOMP_WIDTH `PLIC_IRQ_WIDTH
 
 `define PLIC_TM_LEVL 1'b0
 `define PLIC_TM_EDGE 1'b1
