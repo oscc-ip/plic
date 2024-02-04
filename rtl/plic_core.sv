@@ -53,7 +53,7 @@ module plic_core (
     input  logic [   `PLIC_TM_WIDTH-1:0] tm_i,
     input  logic [  `PLIC_GWP_WIDTH-1:0] tnm_i,
     input  logic [   `PLIC_IE_WIDTH-1:0] ie_i,
-    input  logic [ `PLIC_PRIO_WIDTH-1:0] prio_i [`PLIC_IRQ_NUM],
+    input  logic [  `PLIC_LEV_WIDTH-1:0] prio_i [`PLIC_IRQ_NUM],
     input  logic [`PLIC_THOLD_WIDTH-1:0] thold_i,
     input  logic                         clam_i,
     input  logic                         comp_i,
@@ -63,54 +63,55 @@ module plic_core (
     output logic                         irq_o
 );
 
-  logic [`PLIC_PRIO_WIDTH-1:0] s_prio_in_d[`PLIC_IRQ_NUM];
-  logic [`PLIC_PRIO_WIDTH-1:0] s_prio_in_q[`PLIC_IRQ_NUM];
-  logic [`PLIC_PRIO_WIDTH-1:0] s_idx_in_d [`PLIC_IRQ_NUM];
-  logic [`PLIC_PRIO_WIDTH-1:0] s_idx_in_q [`PLIC_IRQ_NUM];
-  logic [`PLIC_IRQ_WIDTH-1:0] s_idx_d, s_idx_q;
+  logic [`PLIC_LEV_WIDTH-1:0] s_prio_in_d[`PLIC_IRQ_NUM];
+  logic [`PLIC_LEV_WIDTH-1:0] s_prio_in_q[`PLIC_IRQ_NUM];
+  logic [`PLIC_IRQ_WIDTH-1:0] s_id_in_d  [`PLIC_IRQ_NUM];
+  logic [`PLIC_IRQ_WIDTH-1:0] s_id_in_q  [`PLIC_IRQ_NUM];
+  logic [`PLIC_IRQ_WIDTH-1:0] s_id_d, s_id_q;
   logic s_irq_d, s_irq_q;
+  logic [`PLIC_LEV_WIDTH-1:0] s_prio_out;
+  logic [`PLIC_IRQ_WIDTH-1:0] s_id_out;
 
-  assign id_o  = s_idx_q;
+  assign id_o  = s_id_q;
   assign irq_o = s_irq_q;
 
-  for (genvar i = 0; i < `PLIC_IRQ_NUM; i++) begin
+  for (genvar i = 0; i < `PLIC_IRQ_NUM; i++) begin : PLIC_GATEPWAY_BLOCK
     plic_gateway u_plic_gateway (
-        .clk_i  (apb4.pclk),
-        .rst_n_i(apb4.presetn),
+        .clk_i  (clk_i),
+        .rst_n_i(rst_n_i),
         .irq_i  (irq_i[i]),
         .tm_i   (tm_i[i]),
         .tnm_i  (tnm_i),
         .clam_i (id_o == i ? clam_i : 1'b0),
-        .comp_i (),
+        .comp_i (id_o == i ? comp_i : 1'b0),
         .ip_o   (ip_o[i])
     );
 
     assign s_prio_in_d[i] = ie_i[i] && ip_o[i] ? prio_i[i] : '0;
-    dffr #(`PLIC_PRIO_WIDTH) u_prio_dffr (
-        apb4.pclk,
-        apb4.presetn,
+    dffr #(`PLIC_LEV_WIDTH) u_prio_dffr (
+        clk_i,
+        rst_n_i,
         s_prio_in_d[i],
         s_prio_in_q[i]
     );
 
-    assign s_idx_in_d[i] = ie_i[i] && ip_o[i] ? i : '0;
+    assign s_id_in_d[i] = ie_i[i] && ip_o[i] ? i : '0;
     dffr #(`PLIC_IRQ_WIDTH) u_id_dffr (
-        apb4.pclk,
-        apb4.presetn,
-        s_idx_in_d[i],
-        s_idx_in_q[i]
+        clk_i,
+        rst_n_i,
+        s_id_in_d[i],
+        s_id_in_q[i]
     );
   end
-
 
   prio_tree #(
       .LOW_IDX(0),
       .HIG_IDX(`PLIC_IRQ_NUM - 1)
   ) u_root_prio_tree (
       .prio_i(s_prio_in_q),
-      .idx_i (s_idx_in_q),
+      .id_i  (s_id_in_q),
       .prio_o(s_prio_out),
-      .id_o  (s_idx_out)
+      .id_o  (s_id_out)
   );
 
   assign s_irq_d = s_prio_out > thold_i;
@@ -121,11 +122,11 @@ module plic_core (
       s_irq_q
   );
 
-  assign s_idx_d = s_idx_out;
+  assign s_id_d = s_id_out;
   dffr #(`PLIC_IRQ_WIDTH) u_idx_dffr (
       clk_i,
       rst_n_i,
-      s_idx_d,
-      s_idx_q
+      s_id_d,
+      s_id_q
   );
 endmodule

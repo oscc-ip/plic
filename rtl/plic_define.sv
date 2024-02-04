@@ -93,7 +93,7 @@
 `define PLIC_PRIO_LEV   16
 `define PLIC_GWP_WIDTH  3  // max gateway edge trigger counter
 `define PLIC_IRQ_WIDTH  $clog2(`PLIC_IRQ_NUM)  // irq id width
-`define PLIC_PRIO_WIDTH $clog2(`PLIC_PRIO_LEV)
+`define PLIC_LEV_WIDTH  $clog2(`PLIC_PRIO_LEV)
 
 
 `define PLIC_CTRL_WIDTH      4
@@ -112,6 +112,9 @@
 interface plic_if ();
   logic [`PLIC_IRQ_NUM-1:0] irq_i;
   logic                     irq_o;
+
+  modport dut(input irq_i, output irq_o);
+  modport tb(output irq_i, input irq_o);
 endinterface
 
 `endif

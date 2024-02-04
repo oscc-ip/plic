@@ -51,24 +51,24 @@ module prio_tree #(
     parameter int LOW_IDX = 0,
     parameter int HIG_IDX = `PLIC_IRQ_NUM
 ) (
-    input  logic [`PLIC_PRIO_WIDTH-1:0] prio_i[`PLIC_IRQ_NUM],
-    input  logic [ `PLIC_IRQ_WIDTH-1:0] idx_i [`PLIC_IRQ_NUM],
-    output logic [`PLIC_PRIO_WIDTH-1:0] prio_o,
-    output logic [ `PLIC_IRQ_WIDTH-1:0] id_o
+    input  logic [`PLIC_LEV_WIDTH-1:0] prio_i[`PLIC_IRQ_NUM],
+    input  logic [`PLIC_IRQ_WIDTH-1:0] id_i  [`PLIC_IRQ_NUM],
+    output logic [`PLIC_LEV_WIDTH-1:0] prio_o,
+    output logic [`PLIC_IRQ_WIDTH-1:0] id_o
 );
 
-  logic [`PLIC_PRIO_WIDTH-1:0] s_prio_lo, s_prio_hi;
+  logic [`PLIC_LEV_WIDTH-1:0] s_prio_lo, s_prio_hi;
   logic [`PLIC_IRQ_WIDTH-1:0] s_idx_lo, s_idx_hi;
 
   generate
     begin
-      if (HIG_IDX - LOW_IDX > 1) begin
+      if (HIG_IDX - LOW_IDX > 1) begin : PLIC_RECU_GEN_BLOCK
         prio_tree #(
             .LOW_IDX(LOW_IDX),
             .HIG_IDX(LOW_IDX + (HIG_IDX - LOW_IDX) / 2)
         ) u_low_prio_tree (
             prio_i,
-            idx_i,
+            id_i,
             s_prio_lo,
             s_idx_lo
         );
@@ -77,15 +77,15 @@ module prio_tree #(
             .HIG_IDX(HIG_IDX)
         ) u_hig_prio_tree (
             prio_i,
-            idx_i,
+            id_i,
             s_prio_hi,
             s_idx_hi
         );
-      end else begin
+      end else begin : PLIC_BOUND_GEN_BLOCK
         assign s_prio_lo = prio_i[LOW_IDX];
         assign s_prio_hi = prio_i[HIG_IDX];
-        assign s_idx_lo  = idx_i[LOW_IDX];
-        assign s_idx_hi  = idx_i[HIG_IDX];
+        assign s_idx_lo  = id_i[LOW_IDX];
+        assign s_idx_hi  = id_i[HIG_IDX];
       end
     end
   endgenerate

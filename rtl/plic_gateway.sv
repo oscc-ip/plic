@@ -46,6 +46,7 @@
 
 `include "register.sv"
 `include "edge_det.sv"
+`include "plic_define.sv"
 
 module plic_gateway (
     input  logic                       clk_i,
@@ -58,10 +59,11 @@ module plic_gateway (
     output logic                       ip_o
 );
 
-  localparam GW_IDLE = 2'b00;
+  // verilog_format:off
+  localparam GW_IDLE  = 2'b00;
   localparam GW_CLAIM = 2'b01;
-  localparam GW_COMP = 2'b10;
-
+  localparam GW_COMP  = 2'b10;
+  // verilog_format:on
 
   logic [1:0] s_gw_fsm_d, s_gw_fsm_q;
   logic s_irq_re_trg;
@@ -84,7 +86,7 @@ module plic_gateway (
     unique case ({
       s_edge_dec_q, s_irq_re_trg
     })
-      2'b00: s_trg_cnt_d = s_trg_cnt_q;
+      2'b00:   s_trg_cnt_d = s_trg_cnt_q;
       2'b01: begin
         if (s_trg_cnt_q < tnm_i) begin
           s_trg_cnt_d = s_trg_cnt_q + 1'b1;
@@ -95,13 +97,14 @@ module plic_gateway (
           s_trg_cnt_d = s_trg_cnt_q - 1'b1;
         end
       end
-      2'b11: s_trg_cnt_d = s_trg_cnt_q;
+      2'b11:   s_trg_cnt_d = s_trg_cnt_q;
+      default: s_trg_cnt_d = s_trg_cnt_q;
     endcase
   end
   dffr #(`PLIC_GWP_WIDTH) u_trg_cnt_dffr (
       clk_i,
       rst_n_i,
-      tm_i == `PLIC_TM_LEVL ? '0 : s_tran_cnt_d,
+      tm_i == `PLIC_TM_LEVL ? '0 : s_trg_cnt_d,
       s_trg_cnt_q
   );
 
@@ -114,21 +117,21 @@ module plic_gateway (
   always_comb begin
     s_gw_fsm_d = s_gw_fsm_q;
     unique case (s_gw_fsm_q)
-      GP_IDLE: begin
-        if (tm_i == PLIC_TM_LEVL && irq_i) begin
-          s_gw_fsm_d = CLAIM;
-        end else if (tm_i == PLIC_TM_EDGE && |s_trg_cnt_d) begin
-          s_gw_fsm_d = CLAIM;
+      GW_IDLE: begin
+        if (tm_i == `PLIC_TM_LEVL && irq_i) begin
+          s_gw_fsm_d = GW_CLAIM;
+        end else if (tm_i == `PLIC_TM_EDGE && |s_trg_cnt_d) begin
+          s_gw_fsm_d = GW_CLAIM;
         end
       end
-      GPCLAIM: begin
+      GW_CLAIM: begin
         if (clam_i) begin
-          s_gw_fsm_d = COMP;
+          s_gw_fsm_d = GW_COMP;
         end
       end
-      GP_COMP: begin
+      GW_COMP: begin
         if (comp_i) begin
-          s_gw_fsm_d = IDLE;
+          s_gw_fsm_d = GW_IDLE;
         end
       end
       default s_gw_fsm_d = '0;
@@ -141,7 +144,7 @@ module plic_gateway (
       s_gw_fsm_q
   );
 
-  assign s_edge_dec_d = (tm_i == PLIC_TM_EDGE && |s_trg_cnt_q) ? 1'b1 : 1'b0;
+  assign s_edge_dec_d = (tm_i == `PLIC_TM_EDGE && |s_trg_cnt_q) ? 1'b1 : 1'b0;
   dffr #(1) u_edge_dec_dffr (
       clk_i,
       rst_n_i,
