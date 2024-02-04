@@ -38,8 +38,15 @@ module apb4_plic (
   logic s_plic_ie_en;
   logic [`PLIC_THOLD_WIDTH-1:0] s_plic_thold_d, s_plic_thold_q;
   logic s_plic_thold_en;
-  logic [`PLIC_CLAIMCOMP_WIDTH-1:0] s_plic_claimcomp_d, s_plic_claimcomp_q;
-  logic [`PLIC_IRQ_NUM-1:0] s_irq_claim, s_irq_comp;
+  logic s_clam_in, s_comp_in;
+  logic [`PLIC_PRIO_WIDTH-1:0] s_prio_in [`PLIC_IRQ_NUM];
+  // bit
+  logic                        s_bit_en;
+  logic [ `PLIC_GWP_WIDTH-1:0] s_bit_tnm;
+  // out
+  logic [  `PLIC_IP_WIDTH-1:0] s_ip_out;
+  logic [ `PLIC_IRQ_WIDTH-1:0] s_id_out;
+
 
   assign s_apb4_addr     = apb4.paddr[5:2];
   assign s_apb4_wr_hdshk = apb4.psel && apb4.penable && apb4.pwrite;
@@ -107,7 +114,7 @@ module apb4_plic (
       s_plic_prio4_q
   );
 
-  assign s_plic_ip_d = 1'b0;
+  assign s_plic_ip_d = s_ip_out;
   dffr #(`PLIC_IP_WIDTH) u_plic_ip_dffr (
       apb4.pclk,
       apb4.presetn,
@@ -144,49 +151,61 @@ module apb4_plic (
       s_plic_thold_q
   );
 
-  for (genvar i = 1; i < `PLIC_IRQ_NUM; i++) begin
-    assign s_irq_comp[i] = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_CLAIMCOMP && apb4.pwdata[`PLIC_CLAIMCOMP_WIDTH-1:0] == i;
-    assign s_irq_claim[i] = s_apb4_rd_hdshk && s_apb4_addr == `PLIC_CLAIMCOMP && s_irq_max_id == i;
-  end
-  dffr #(`PLIC_CLAIMCOMP_WIDTH) u_plic_claimcomp_dffr (
-      apb4.pclk,
-      apb4.presetn,
-      s_plic_claimcomp_d,
-      s_plic_claimcomp_q
-  );
+  assign s_comp_in = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_CLAIMCOMP;
 
   always_comb begin
     apb4.prdata = '0;
+    s_clam_in   = 1'b0;
     if (s_apb4_rd_hdshk) begin
       unique case (s_apb4_addr)
-        `PLIC_CTRL:      apb4.prdata[`PLIC_CTRL_WIDTH-1:0] = s_plic_ctrl_q;
-        `PLIC_TM:        apb4.prdata[`PLIC_TM_WIDTH-1:0] = s_plic_tm_q;
-        `PLIC_PRIO1:     apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio1_q;
-        `PLIC_PRIO2:     apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio2_q;
-        `PLIC_PRIO3:     apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio3_q;
-        `PLIC_PRI43:     apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio4_q;
-        `PLIC_IP:        apb4.prdata[`PLIC_IP_WIDTH-1:0] = s_plic_ip_q;
-        `PLIC_IE:        apb4.prdata[`PLIC_IE_WIDTH-1:0] = s_plic_ie_q;
-        `PLIC_THOLD:     apb4.prdata[`PLIC_THOLD_WIDTH-1:0] = s_plic_thold_q;
-        `PLIC_CLAIMCOMP: apb4.prdata[`PLIC_CLAIMCOMP_WIDTH-1:0] = s_plic_claimcomp_q;
-        default:         apb4.prdata = '0;
+        `PLIC_CTRL:  apb4.prdata[`PLIC_CTRL_WIDTH-1:0] = s_plic_ctrl_q;
+        `PLIC_TM:    apb4.prdata[`PLIC_TM_WIDTH-1:0] = s_plic_tm_q;
+        `PLIC_PRIO1: apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio1_q;
+        `PLIC_PRIO2: apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio2_q;
+        `PLIC_PRIO3: apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio3_q;
+        `PLIC_PRI43: apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio4_q;
+        `PLIC_IP:    apb4.prdata[`PLIC_IP_WIDTH-1:0] = s_plic_ip_q;
+        `PLIC_IE:    apb4.prdata[`PLIC_IE_WIDTH-1:0] = s_plic_ie_q;
+        `PLIC_THOLD: apb4.prdata[`PLIC_THOLD_WIDTH-1:0] = s_plic_thold_q;
+        `PLIC_CLAIMCOMP: begin
+          s_clam_in                              = 1'b1;
+          apb4.prdata[`PLIC_CLAIMCOMP_WIDTH-1:0] = s_id_out;
+        end
+        default:     apb4.prdata = '0;
       endcase
     end
   end
 
+  // HACK: assign prio reg value with generate block
+  assign s_prio_in[0] = '0;
+  for (genvar i = 1; i < 32 / `PLIC_PRIO_WIDTH; i++) begin
+    assign s_prio_in[i] = s_plic_prio1_q[i*4:+3];
+  end
+
+  for (genvar i = 0; i < 32 / `PLIC_PRIO_WIDTH; i++) begin
+    assign s_prio_in[32/`PLIC_PRIO_WIDTH*1+i] = s_plic_prio2_q[i*4:+3];
+  end
+
+  for (genvar i = 0; i < 32 / `PLIC_PRIO_WIDTH; i++) begin
+    assign s_prio_in[32/`PLIC_PRIO_WIDTH*2+i] = s_plic_prio3_q[i*4:+3];
+  end
+
+  for (genvar i = 0; i < 32 / `PLIC_PRIO_WIDTH; i++) begin
+    assign s_prio_in[32/`PLIC_PRIO_WIDTH*3+i] = s_plic_prio4_q[i*4:+3];
+  end
 
   plic_core u_plic_core (
       .clk_i  (apb4.pclk),
       .rst_n_i(apb4.presetn),
-      .tm_i   (),
-      .tnm_i  (),
-      .ie_i   (),
-      .prio_i (),
-      .thold_i(),
-      .clam_i (),
-      .comp_i (),
-      .ip_o   (),
-      .idx_o  (),
+      .tm_i   (s_plic_tm_q),
+      .tnm_i  (s_bit_tnm),
+      .ie_i   (s_plic_ie_q && {`PLIC_IE_WIDTH{s_bit_en}}),
+      .prio_i (s_prio_in),
+      .thold_i(s_plic_thold_q),
+      .clam_i (s_clam_in),
+      .comp_i (s_comp_in),
+      .ip_o   (s_ip_out),
+      .idx_o  (s_id_out),
       .irq_i  (plic.irq_i),
       .irq_o  (plic.irq_o)
   );

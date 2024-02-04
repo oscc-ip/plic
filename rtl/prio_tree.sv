@@ -54,7 +54,7 @@ module prio_tree #(
     input  logic [`PLIC_PRIO_WIDTH-1:0] prio_i[`PLIC_IRQ_NUM],
     input  logic [ `PLIC_IRQ_WIDTH-1:0] idx_i [`PLIC_IRQ_NUM],
     output logic [`PLIC_PRIO_WIDTH-1:0] prio_o,
-    output logic [ `PLIC_IRQ_WIDTH-1:0] idx_o
+    output logic [ `PLIC_IRQ_WIDTH-1:0] id_o
 );
 
   logic [`PLIC_PRIO_WIDTH-1:0] s_prio_lo, s_prio_hi;
@@ -91,5 +91,5 @@ module prio_tree #(
   endgenerate
 
   assign prio_o = s_prio_lo < s_prio_hi ? s_prio_hi : s_prio_lo;
-  assign idx_o  = s_prio_lo < s_prio_hi ? s_idx_hi : s_idx_lo;
+  assign id_o   = s_prio_lo < s_prio_hi ? s_idx_hi : s_idx_lo;
 endmodule

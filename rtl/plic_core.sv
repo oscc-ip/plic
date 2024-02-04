@@ -58,7 +58,7 @@ module plic_core (
     input  logic                         clam_i,
     input  logic                         comp_i,
     output logic [   `PLIC_IP_WIDTH-1:0] ip_o,
-    output logic [  `PLIC_IRQ_WIDTH-1:0] idx_o,
+    output logic [  `PLIC_IRQ_WIDTH-1:0] id_o,
     input  logic [    `PLIC_IRQ_NUM-1:0] irq_i,
     output logic                         irq_o
 );
@@ -70,7 +70,7 @@ module plic_core (
   logic [`PLIC_IRQ_WIDTH-1:0] s_idx_d, s_idx_q;
   logic s_irq_d, s_irq_q;
 
-  assign idx_o = s_idx_q;
+  assign id_o  = s_idx_q;
   assign irq_o = s_irq_q;
 
   for (genvar i = 0; i < `PLIC_IRQ_NUM; i++) begin
@@ -80,7 +80,7 @@ module plic_core (
         .irq_i  (irq_i[i]),
         .tm_i   (tm_i[i]),
         .tnm_i  (tnm_i),
-        .clam_i (idx_o == i ? clam_i : 1'b0),
+        .clam_i (id_o == i ? clam_i : 1'b0),
         .comp_i (),
         .ip_o   (ip_o[i])
     );
@@ -110,7 +110,7 @@ module plic_core (
       .prio_i(s_prio_in_q),
       .idx_i (s_idx_in_q),
       .prio_o(s_prio_out),
-      .idx_o (s_idx_out)
+      .id_o  (s_idx_out)
   );
 
   assign s_irq_d = s_prio_out > thold_i;
