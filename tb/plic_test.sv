@@ -69,16 +69,36 @@ endtask
 
 task automatic PLICTest::test_irq(input bit [31:0] run_times = 10);
   super.test_irq();
-  // this.write(`PWM_CTRL_ADDR, 32'b100 & {`PWM_CTRL_WIDTH{1'b1}});  // clear cnt
-  // this.write(`PWM_CR0_ADDR, 32'b0 & {`PWM_CRX_WIDTH{1'b1}});
-  // this.write(`PWM_CR1_ADDR, 32'b0 & {`PWM_CRX_WIDTH{1'b1}});
-  // this.write(`PWM_CR2_ADDR, 32'b0 & {`PWM_CRX_WIDTH{1'b1}});
-  // this.write(`PWM_CR3_ADDR, 32'b0 & {`PWM_CRX_WIDTH{1'b1}});
-  // this.read(`PWM_STAT_ADDR);  // clear the irq
+  // init env
+  this.write(`PLIC_CTRL_ADDR, 32'b0 & {`PLIC_CTRL_WIDTH{1'b1}});
+  this.write(`PLIC_TM_ADDR, 32'b0 & {`PLIC_TM_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO1_ADDR, 32'b0 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO2_ADDR, 32'b0 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO3_ADDR, 32'b0 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO4_ADDR, 32'b0 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_IE_ADDR, 32'b0 & {`PLIC_IE_WIDTH{1'b1}});
+  this.plic.irq_i = '0;
 
-  // this.write(`PWM_CTRL_ADDR, 32'b0 & {`PWM_CTRL_WIDTH{1'b1}});
-  // this.write(`PWM_PSCR_ADDR, 32'd4 & {`PWM_PSCR_WIDTH{1'b1}});
-  // this.write(`PWM_CMP_ADDR, 32'hE & {`PWM_CMP_WIDTH{1'b1}});
+  // high level trigger
+  this.write(`PLIC_TM_ADDR, 32'b0 & {`PLIC_TM_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO1_ADDR, 32'h7654_3210 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO2_ADDR, 32'hFEDC_BA98 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO3_ADDR, 32'h7654_3210 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO4_ADDR, 32'hFEDC_BA98 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_IE_ADDR, 32'b1000 & {`PLIC_IE_WIDTH{1'b1}});
+  this.write(`PLIC_THOLD_ADDR, 32'h0 & {`PLIC_THOLD_WIDTH{1'b1}});
+  this.write(`PLIC_CTRL_ADDR, 32'b1 & {`PLIC_CTRL_WIDTH{1'b1}});
+
+  repeat (50) @(posedge this.apb4.pclk);
+  this.plic.irq_i[3] = 1'b1;
+
+  wait (this.plic.irq_o);
+  this.read(`PLIC_CLAIMCOMP_ADDR);
+  repeat (10) @(posedge this.apb4.pclk);  // sim irq handle
+  this.plic.irq_i[3] = 1'b0;
+  $display("%t irq id: %d", $time, super.rd_data);
+  this.write(`PLIC_CLAIMCOMP_ADDR, super.rd_data);
+
 
   // for (int i = 0; i < run_times; i++) begin
   //   this.write(`PWM_CTRL_ADDR, 32'b0 & {`PWM_CTRL_WIDTH{1'b1}});
