@@ -57,6 +57,7 @@ module plic_core (
     input  logic [`PLIC_THOLD_WIDTH-1:0] thold_i,
     input  logic                         clam_i,
     input  logic                         comp_i,
+    input  logic [  `PLIC_IRQ_WIDTH-1:0] id_i,
     output logic [   `PLIC_IP_WIDTH-1:0] ip_o,
     output logic [  `PLIC_IRQ_WIDTH-1:0] id_o,
     input  logic [    `PLIC_IRQ_NUM-1:0] irq_i,
@@ -68,12 +69,22 @@ module plic_core (
   logic [`PLIC_IRQ_WIDTH-1:0] s_id_in_d  [`PLIC_IRQ_NUM];
   logic [`PLIC_IRQ_WIDTH-1:0] s_id_in_q  [`PLIC_IRQ_NUM];
   logic [`PLIC_IRQ_WIDTH-1:0] s_id_d, s_id_q;
-  logic s_irq_d, s_irq_q;
+  logic [`PLIC_IRQ_WIDTH-1:0] s_id_clam_d, s_id_clam_q;
   logic [`PLIC_LEV_WIDTH-1:0] s_prio_out;
   logic [`PLIC_IRQ_WIDTH-1:0] s_id_out;
+  logic s_irq_d, s_irq_q;
 
-  assign id_o  = s_id_q;
-  assign irq_o = s_irq_q;
+  assign id_o        = s_id_q;
+  assign irq_o       = s_irq_q;
+
+  // when clam_i trgger, prio_tree change id_o val which need by comp_i
+  assign s_id_clam_d = clam_i ? id_o : s_id_clam_q;
+  dffr #(`PLIC_IRQ_WIDTH) u_id_clam_dffr (
+      clk_i,
+      rst_n_i,
+      s_id_clam_d,
+      s_id_clam_q
+  );
 
   for (genvar i = 0; i < `PLIC_IRQ_NUM; i++) begin : PLIC_GATEPWAY_BLOCK
     plic_gateway u_plic_gateway (
@@ -83,7 +94,7 @@ module plic_core (
         .tm_i   (tm_i[i]),
         .tnm_i  (tnm_i),
         .clam_i (id_o == i ? clam_i : 1'b0),
-        .comp_i (id_o == i ? comp_i : 1'b0),
+        .comp_i (s_id_clam_q == i ? comp_i && (id_i == i) : 1'b0),  // refer to TRM CH9
         .ip_o   (ip_o[i])
     );
 
