@@ -160,7 +160,7 @@ module apb4_plic (
         `PLIC_PRIO1: apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio1_q;
         `PLIC_PRIO2: apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio2_q;
         `PLIC_PRIO3: apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio3_q;
-        `PLIC_PRIO3: apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio4_q;
+        `PLIC_PRIO4: apb4.prdata[`PLIC_PRIO_WIDTH-1:0] = s_plic_prio4_q;
         `PLIC_IP:    apb4.prdata[`PLIC_IP_WIDTH-1:0] = s_plic_ip_q;
         `PLIC_IE:    apb4.prdata[`PLIC_IE_WIDTH-1:0] = s_plic_ie_q;
         `PLIC_THOLD: apb4.prdata[`PLIC_THOLD_WIDTH-1:0] = s_plic_thold_q;

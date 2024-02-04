@@ -37,7 +37,7 @@
  * FIELDS: | PRIO23 | ... | PRIO17 | PRIO16 |
  * PERMS:  | RW     | ... | RW     | RW     |
  * -------------------------------------------------------
- * PLIC_PRIO3:
+ * PLIC_PRIO4:
  * BITS:   | 31:28  | ... | 7:4    | 3:0    |
  * FIELDS: | PRIO31 | ... | PRIO25 | PRIO24 |
  * PERMS:  | RW     | ... | RW     | RW     |
