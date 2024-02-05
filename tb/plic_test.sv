@@ -68,6 +68,7 @@ task automatic PLICTest::test_wr_rd_reg(input bit [31:0] run_times = 1000);
 endtask
 
 task automatic PLICTest::test_irq(input bit [31:0] run_times = 10);
+  bit [`PLIC_IRQ_WIDTH-1:0] tmp_id;
   super.test_irq();
   // init env
   this.write(`PLIC_CTRL_ADDR, 32'b0 & {`PLIC_CTRL_WIDTH{1'b1}});
@@ -81,33 +82,33 @@ task automatic PLICTest::test_irq(input bit [31:0] run_times = 10);
 
   // high level trigger
   this.write(`PLIC_TM_ADDR, 32'b0 & {`PLIC_TM_WIDTH{1'b1}});
-  this.write(`PLIC_PRIO1_ADDR, 32'h7654_3210 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO1_ADDR, 32'h7654_3211 & {`PLIC_PRIO_WIDTH{1'b1}});
   this.write(`PLIC_PRIO2_ADDR, 32'hFEDC_BA98 & {`PLIC_PRIO_WIDTH{1'b1}});
-  this.write(`PLIC_PRIO3_ADDR, 32'h7654_3210 & {`PLIC_PRIO_WIDTH{1'b1}});
+  this.write(`PLIC_PRIO3_ADDR, 32'h7654_3211 & {`PLIC_PRIO_WIDTH{1'b1}});
   this.write(`PLIC_PRIO4_ADDR, 32'hFEDC_BA98 & {`PLIC_PRIO_WIDTH{1'b1}});
-  this.write(`PLIC_IE_ADDR, 32'b1000 & {`PLIC_IE_WIDTH{1'b1}});
+
   this.write(`PLIC_THOLD_ADDR, 32'h0 & {`PLIC_THOLD_WIDTH{1'b1}});
   this.write(`PLIC_CTRL_ADDR, 32'b1 & {`PLIC_CTRL_WIDTH{1'b1}});
 
-  repeat (50) @(posedge this.apb4.pclk);
-  this.plic.irq_i[3] = 1'b1;
+  // single irq trg
+  for (int i = 0; i < 1000; i++) begin
+    repeat (50) @(posedge this.apb4.pclk);
+    tmp_id = {$random} % 30 + 1;
+    // $display("i: %d trg id: %d", i, tmp_id);
+    this.write(`PLIC_IE_ADDR, (1 << tmp_id) & {`PLIC_IE_WIDTH{1'b1}});
+    repeat (50) @(posedge this.apb4.pclk);
+    this.plic.irq_i[tmp_id] = 1'b1;
 
-  wait (this.plic.irq_o);
-  this.read(`PLIC_CLAIMCOMP_ADDR);
-  repeat (10) @(posedge this.apb4.pclk);  // sim irq handle
-  this.plic.irq_i[3] = 1'b0;
-  $display("%t irq id: %d", $time, super.rd_data);
-  this.write(`PLIC_CLAIMCOMP_ADDR, super.rd_data);
+    wait (this.plic.irq_o);
+    this.read(`PLIC_CLAIMCOMP_ADDR);
+    repeat (10) @(posedge this.apb4.pclk);  // sim irq handle
+    this.plic.irq_i[tmp_id] = 1'b0;
+    if (tmp_id != super.rd_data) begin
+      $display("%t [mismatch id] trg id: %d irq id: %d", $time, tmp_id, super.rd_data);
+    end
+    this.write(`PLIC_CLAIMCOMP_ADDR, super.rd_data);
+  end
 
-
-  // for (int i = 0; i < run_times; i++) begin
-  //   this.write(`PWM_CTRL_ADDR, 32'b0 & {`PWM_CTRL_WIDTH{1'b1}});
-  //   this.read(`PWM_STAT_ADDR);
-  //   $display("%t rd_data: %h", $time, super.rd_data);
-  //   this.write(`PWM_CTRL_ADDR, 32'b11 & {`PWM_CTRL_WIDTH{1'b1}});
-  //   @(this.plic.irq_o);
-  //   repeat (200) @(posedge this.apb4.pclk);
-  // end
 
 endtask
 `endif
