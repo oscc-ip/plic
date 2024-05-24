@@ -58,7 +58,7 @@ module apb4_plic (
   assign s_bit_tnm       = s_plic_ctrl_q[`PLIC_GWP_WIDTH-1:1];
 
   assign s_plic_ctrl_en  = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_CTRL;
-  assign s_plic_ctrl_d   = s_plic_ctrl_en ? apb4.pwdata[`PLIC_CTRL_WIDTH-1:0] : s_plic_ctrl_q;
+  assign s_plic_ctrl_d   = apb4.pwdata[`PLIC_CTRL_WIDTH-1:0];
   dffer #(`PLIC_CTRL_WIDTH) u_plic_ctrl_dffer (
       apb4.pclk,
       apb4.presetn,
@@ -68,7 +68,7 @@ module apb4_plic (
   );
 
   assign s_plic_tm_en = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_TM;
-  assign s_plic_tm_d  = s_plic_tm_en ? apb4.pwdata[`PLIC_TM_WIDTH-1:0] : s_plic_tm_q;
+  assign s_plic_tm_d  = apb4.pwdata[`PLIC_TM_WIDTH-1:0];
   dffer #(`PLIC_TM_WIDTH) u_plic_tm_dffer (
       apb4.pclk,
       apb4.presetn,
@@ -78,7 +78,7 @@ module apb4_plic (
   );
 
   assign s_plic_prio1_en = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO1;
-  assign s_plic_prio1_d  = s_plic_prio1_en ? apb4.pwdata[`PLIC_PRIO_WIDTH-1:0] : s_plic_prio1_q;
+  assign s_plic_prio1_d  = apb4.pwdata[`PLIC_PRIO_WIDTH-1:0];
   dffer #(`PLIC_PRIO_WIDTH) u_plic_prio1_dffer (
       apb4.pclk,
       apb4.presetn,
@@ -88,7 +88,7 @@ module apb4_plic (
   );
 
   assign s_plic_prio2_en = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO2;
-  assign s_plic_prio2_d  = s_plic_prio2_en ? apb4.pwdata[`PLIC_PRIO_WIDTH-1:0] : s_plic_prio2_q;
+  assign s_plic_prio2_d  = apb4.pwdata[`PLIC_PRIO_WIDTH-1:0];
   dffer #(`PLIC_PRIO_WIDTH) u_plic_prio2_dffer (
       apb4.pclk,
       apb4.presetn,
@@ -98,7 +98,7 @@ module apb4_plic (
   );
 
   assign s_plic_prio3_en = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO3;
-  assign s_plic_prio3_d  = s_plic_prio3_en ? apb4.pwdata[`PLIC_PRIO_WIDTH-1:0] : s_plic_prio3_q;
+  assign s_plic_prio3_d  = apb4.pwdata[`PLIC_PRIO_WIDTH-1:0];
   dffer #(`PLIC_PRIO_WIDTH) u_plic_prio3_dffer (
       apb4.pclk,
       apb4.presetn,
@@ -108,7 +108,7 @@ module apb4_plic (
   );
 
   assign s_plic_prio4_en = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_PRIO4;
-  assign s_plic_prio4_d  = s_plic_prio4_en ? apb4.pwdata[`PLIC_PRIO_WIDTH-1:0] : s_plic_prio4_q;
+  assign s_plic_prio4_d  = apb4.pwdata[`PLIC_PRIO_WIDTH-1:0];
   dffer #(`PLIC_PRIO_WIDTH) u_plic_prio4_dffer (
       apb4.pclk,
       apb4.presetn,
@@ -130,7 +130,7 @@ module apb4_plic (
     if (i == 0) begin : PLIC_IE_REG0_BLOCK
       assign s_plic_ie_d[i] = 1'b0;
     end else begin : PLIC_IE_REG1_31_BLOCK
-      assign s_plic_ie_d[i] = s_plic_ie_en ? apb4.pwdata[i] : s_plic_ie_q[i];
+      assign s_plic_ie_d[i] = apb4.pwdata[i];
     end
   end
   dffer #(`PLIC_IE_WIDTH) u_plic_ie_dffer (
@@ -142,7 +142,7 @@ module apb4_plic (
   );
 
   assign s_plic_thold_en = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_THOLD;
-  assign s_plic_thold_d  = s_plic_thold_en ? apb4.pwdata[`PLIC_THOLD_WIDTH-1:0] : s_plic_thold_q;
+  assign s_plic_thold_d  = apb4.pwdata[`PLIC_THOLD_WIDTH-1:0];
   dffer #(`PLIC_THOLD_WIDTH) u_plic_thold_dffer (
       apb4.pclk,
       apb4.presetn,

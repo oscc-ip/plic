@@ -17,7 +17,7 @@
  * FIELDS: | RES               | TNM                | EN |
  * PERMS:  | NONE              | RW                 | RW |
  * -------------------------------------------------------
-  * PLIC_TM:
+ * PLIC_TM:
  * BITS:   | 31   | ... | 1   | 0   |
  * FIELDS: | TM31 | ... | TM1 | TM0 |
  * PERMS:  | RW   | ... | RW  | RW  |
@@ -45,7 +45,7 @@
  * PLIC_IP:
  * BITS:   | 31   | ... | 1   | 0   |
  * FIELDS: | IP31 | ... | IP1 | IP0 |
- * PERMS:  | R    | ... | R   | R   |
+ * PERMS:  | RO   | ... | RO  | RO  |
  * -------------------------------------------------------
  * PLIC_IE:
  * BITS:   | 31   | ... | 1   | 0   |
