@@ -19,23 +19,23 @@ The `plic(platform level interrupt controller)` IP is a fully parameterised soft
 |:--------- |:------------|:---------------------|
 | apb4      | interface   | apb4 slave interface |
 | plic ->| interface | plic interface |
-| `plic.irq_i` | input | plic source interrupt input |
+| `plic.irq_i` | input | plic interrupt source input |
 | `plic.irq_o` | output | plic interrupt output |
 
 ### Register
 
 | name | offset  | length | description |
 |:----:|:-------:|:-----: | :---------: |
-| [CTRL]() | 0x0 | 4 | control register |
-| [TM]() | 0x4 | 4 |  trigger mode register |
-| [PRIO1]() | 0x8 | 4 | priority 1 register |
-| [PRIO2]() | 0xC | 4 | priority 2 register |
-| [PRIO3]() | 0x10 | 4 | priority 3 register |
-| [PRIO4]() | 0x14 | 4 | priority 4 register |
-| [IP]() | 0x18 | 4 | interrupt pend register |
-| [IE]() | 0x1C | 4 | interrupt enable register |
-| [THOLD]() | 0x20 | 4 | interrupt threshold register |
-| [CLAIMCOMP]() | 0x24 | 4 | interrupt claim/complete register |
+| [CTRL](#control-register) | 0x0 | 4 | control register |
+| [TM](#trigger-mode-register) | 0x4 | 4 |  trigger mode register |
+| [PRIO1](#priority-1-reigster) | 0x8 | 4 | priority 1 register |
+| [PRIO2](#priority-2-reigster) | 0xC | 4 | priority 2 register |
+| [PRIO3](#priority-3-reigster) | 0x10 | 4 | priority 3 register |
+| [PRIO4](#priority-4-reigster) | 0x14 | 4 | priority 4 register |
+| [IP](#interrupt-pend-reigster) | 0x18 | 4 | interrupt pend register |
+| [IE](#interrupt-enable-reigster) | 0x1C | 4 | interrupt enable register |
+| [THOLD](#interrupt-threshold-reigster) | 0x20 | 4 | interrupt threshold register |
+| [CLAIMCOMP](#interrupt-claimcomplete-register) | 0x24 | 4 | interrupt claim/complete register |
 
 #### Control Register
 | bit | access  | description |
@@ -68,6 +68,93 @@ reset value: `0x0000_0000`
     * `TM[i]=1'b1`: edge trigger
 
 #### Priority 1 Reigster
+| bit | access  | description |
+|:---:|:-------:| :---------: |
+| `[31:28]` | RW | PRIO7 |
+...
+| `[7:4]` | RW | PRIO1 |
+| `[3:0]` | RW | PRIO0 |
+
+reset value: `0x0000_0000`
+
+* PRIO1[i]: trigger mode for irq[i]
+
+
+#### Priority 2 Reigster
+| bit | access  | description |
+|:---:|:-------:| :---------: |
+| `[31:28]` | RW | PRIO7 |
+...
+| `[7:4]` | RW | PRIO1 |
+| `[3:0]` | RW | PRIO0 |
+
+reset value: `0x0000_0000`
+
+* PRIO1[i]: trigger mode for irq[i]
+
+
+#### Priority 3 Reigster
+| bit | access  | description |
+|:---:|:-------:| :---------: |
+| `[31:28]` | RW | PRIO7 |
+...
+| `[7:4]` | RW | PRIO1 |
+| `[3:0]` | RW | PRIO0 |
+
+reset value: `0x0000_0000`
+
+* PRIO1[i]: trigger mode for irq[i]
+
+
+#### Priority 4 Reigster
+| bit | access  | description |
+|:---:|:-------:| :---------: |
+| `[31:28]` | RW | PRIO7 |
+...
+| `[7:4]` | RW | PRIO1 |
+| `[3:0]` | RW | PRIO0 |
+
+reset value: `0x0000_0000`
+
+* PRIO1[i]: trigger mode for irq[i]
+
+#### Interrupt Pend Reigster
+| bit | access  | description |
+|:---:|:-------:| :---------: |
+| `[31:28]` | RW | PRIO7 |
+...
+| `[7:4]` | RW | PRIO1 |
+| `[3:0]` | RW | PRIO0 |
+
+reset value: `0x0000_0000`
+
+* PRIO1[i]: trigger mode for irq[i]
+
+#### Interrupt Enable Reigster
+| bit | access  | description |
+|:---:|:-------:| :---------: |
+| `[31:28]` | RW | PRIO7 |
+...
+| `[7:4]` | RW | PRIO1 |
+| `[3:0]` | RW | PRIO0 |
+
+reset value: `0x0000_0000`
+
+* PRIO1[i]: trigger mode for irq[i]
+
+#### Interrupt Threshold Reigster
+| bit | access  | description |
+|:---:|:-------:| :---------: |
+| `[31:28]` | RW | PRIO7 |
+...
+| `[7:4]` | RW | PRIO1 |
+| `[3:0]` | RW | PRIO0 |
+
+reset value: `0x0000_0000`
+
+* PRIO1[i]: trigger mode for irq[i]
+
+#### Interrupt Claim/Complete Register
 | bit | access  | description |
 |:---:|:-------:| :---------: |
 | `[31:28]` | RW | PRIO7 |
