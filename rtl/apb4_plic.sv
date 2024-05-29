@@ -55,7 +55,7 @@ module apb4_plic (
   assign apb4.pslverr    = 1'b0;
 
   assign s_bit_en        = s_plic_ctrl_q[0];
-  assign s_bit_tnm       = s_plic_ctrl_q[`PLIC_GWP_WIDTH-1:1];
+  assign s_bit_tnm       = s_plic_ctrl_q[`PLIC_GWP_WIDTH:1];
 
   assign s_plic_ctrl_en  = s_apb4_wr_hdshk && s_apb4_addr == `PLIC_CTRL;
   assign s_plic_ctrl_d   = apb4.pwdata[`PLIC_CTRL_WIDTH-1:0];

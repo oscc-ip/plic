@@ -13,9 +13,9 @@
 
 /* register mapping
  * PLIC_CTRL:
- * BITS:   | 31:PLIC_GWP_WIDTH | PLIC_GWP_WIDTH-1:1 | 0  |
- * FIELDS: | RES               | TNM                | EN |
- * PERMS:  | NONE              | RW                 | RW |
+ * BITS:   | 31:PLIC_GWP_WIDTH+1 | PLIC_GWP_WIDTH:1 | 0  |
+ * FIELDS: | RES                 | TNM              | EN |
+ * PERMS:  | NONE                | RW               | RW |
  * -------------------------------------------------------
  * PLIC_TM:
  * BITS:   | 31   | ... | 1   | 0   |

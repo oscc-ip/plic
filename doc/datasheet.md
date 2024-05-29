@@ -46,10 +46,10 @@ The `plic(platform level interrupt controller)` IP is a fully parameterised soft
 
 reset value: `0x0000_0000`
 
-* TNM: 
+* TNM: gateway max trigger number
 
 * EN: plic core enable
-    * `EN=1'b0`: enable plic core
+    * `EN=1'b0`: disable plic core
     * `EN=1'b1`: otherwise
 
 #### Trigger Mode Register
