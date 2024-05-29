@@ -165,21 +165,27 @@ reset value: `0x0000_0000`
     * write `CLAIMCOMP` to clear interrupt irq
 
 ### Program Guide
-These registers can be accessed by 4-byte aligned read and write. C-like pseudocode read operation:
+These registers can be accessed by 4-byte aligned read and write. C-like pseudocode init operation:
 ```c
-uint32_t val;
-val = plic.SYS // read the sys register
-val = plic.IDL // read the idl register
-val = plic.IDH // read the idh register
+plic.CTRL.TNM = TNM_bit     // set the edge trigger max number
+plic.TM       = TM_32_bit   // set trigger mode for irq[31-0]
+plic.PRIO1    = PRO1_32_bit // set priority for irq[7-0]
+plic.PRIO2    = PRO2_32_bit // set priority for irq[15-8]
+plic.PRIO3    = PRO3_32_bit // set priority for irq[23-16]
+plic.PRIO4    = PRO4_32_bit // set priority for irq[31-24]
+plic.THOLD    = THOLD_bit   // set the trigger threshold for target 0
+plic.IE       = IE_32_bit   // set interrupt enable for irq[31-0]
+plic.CTRL.EN  = 1           // enable plic core
 
 ```
-write operation:
+claim/comp operation:
 ```c
-uint32_t val = value_to_be_written;
-plic.SYS = val // write the sys register
-plic.IDL = val // write the idl register
-plic.IDH = val // write the idh register
-
+void plic_handle() {
+    uint32_t id    = plic.CLAIMCOMP // get irq id
+    ...                             // handle specified extern irq
+    ...
+    plic.CLAIMCOMP = id             // clear irq
+}
 ```
 
 ### Resoureces

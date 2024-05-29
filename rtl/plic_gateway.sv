@@ -134,7 +134,7 @@ module plic_gateway (
           s_gw_fsm_d = GW_IDLE;
         end
       end
-      default s_gw_fsm_d = '0;
+      default s_gw_fsm_d = GW_IDLE;
     endcase
   end
   dffr #(2) u_gp_fsm_dffr (
