@@ -46,7 +46,7 @@ The `plic(platform level interrupt controller)` IP is a fully parameterised soft
 
 reset value: `0x0000_0000`
 
-* TNM:
+* TNM: 
 
 * EN: plic core enable
     * `EN=1'b0`: enable plic core
@@ -83,10 +83,10 @@ reset value: `0x0000_0000`
 #### Priority 2 Reigster
 | bit | access  | description |
 |:---:|:-------:| :---------: |
-| `[31:28]` | RW | PRIO7 |
+| `[31:28]` | RW | PRIO15 |
 ...
-| `[7:4]` | RW | PRIO1 |
-| `[3:0]` | RW | PRIO0 |
+| `[7:4]` | RW | PRIO9 |
+| `[3:0]` | RW | PRIO8 |
 
 reset value: `0x0000_0000`
 
@@ -96,10 +96,10 @@ reset value: `0x0000_0000`
 #### Priority 3 Reigster
 | bit | access  | description |
 |:---:|:-------:| :---------: |
-| `[31:28]` | RW | PRIO7 |
+| `[31:28]` | RW | PRIO23 |
 ...
-| `[7:4]` | RW | PRIO1 |
-| `[3:0]` | RW | PRIO0 |
+| `[7:4]` | RW | PRIO17 |
+| `[3:0]` | RW | PRIO16 |
 
 reset value: `0x0000_0000`
 
@@ -109,10 +109,10 @@ reset value: `0x0000_0000`
 #### Priority 4 Reigster
 | bit | access  | description |
 |:---:|:-------:| :---------: |
-| `[31:28]` | RW | PRIO7 |
+| `[31:28]` | RW | PRIO31 |
 ...
-| `[7:4]` | RW | PRIO1 |
-| `[3:0]` | RW | PRIO0 |
+| `[7:4]` | RW | PRIO25 |
+| `[3:0]` | RW | PRIO24 |
 
 reset value: `0x0000_0000`
 
@@ -121,50 +121,48 @@ reset value: `0x0000_0000`
 #### Interrupt Pend Reigster
 | bit | access  | description |
 |:---:|:-------:| :---------: |
-| `[31:28]` | RW | PRIO7 |
+| `[31:31]` | RO | IP31 |
 ...
-| `[7:4]` | RW | PRIO1 |
-| `[3:0]` | RW | PRIO0 |
+| `[1:1]` | RO | IP1 |
+| `[0:0]` | RO | IP0 |
 
 reset value: `0x0000_0000`
 
-* PRIO1[i]: trigger mode for irq[i]
+* IP[i]: interrupt pend for irq[i]
 
 #### Interrupt Enable Reigster
 | bit | access  | description |
 |:---:|:-------:| :---------: |
-| `[31:28]` | RW | PRIO7 |
+| `[31:31]` | RW | IE31 |
 ...
-| `[7:4]` | RW | PRIO1 |
-| `[3:0]` | RW | PRIO0 |
+| `[1:1]` | RW | IE1 |
+| `[0:0]` | RW | IE0 |
 
 reset value: `0x0000_0000`
 
-* PRIO1[i]: trigger mode for irq[i]
+* IE[i]: interrupt enable for irq[i]
 
 #### Interrupt Threshold Reigster
 | bit | access  | description |
 |:---:|:-------:| :---------: |
-| `[31:28]` | RW | PRIO7 |
-...
-| `[7:4]` | RW | PRIO1 |
-| `[3:0]` | RW | PRIO0 |
+| `[31:PLIC_IRQ_WIDTH]` | none | reserved |
+| `[PLIC_IRQ_WIDTH-1:0]` | RW | THOLD |
 
 reset value: `0x0000_0000`
 
-* PRIO1[i]: trigger mode for irq[i]
+* THOLD: interrupt trigger threshold
 
 #### Interrupt Claim/Complete Register
 | bit | access  | description |
 |:---:|:-------:| :---------: |
-| `[31:28]` | RW | PRIO7 |
-...
-| `[7:4]` | RW | PRIO1 |
-| `[3:0]` | RW | PRIO0 |
+| `[31:PLIC_IRQ_WIDTH]` | none | reserved |
+| `[PLIC_IRQ_WIDTH-1:0]` | RW | CLAIMCOMP |
 
 reset value: `0x0000_0000`
 
-* PRIO1[i]: trigger mode for irq[i]
+* CLAIMCOMP: interrupt claim or comp
+    * read `CLAIMCOMP` to return interrupt irq number
+    * write `CLAIMCOMP` to clear interrupt irq
 
 ### Program Guide
 These registers can be accessed by 4-byte aligned read and write. C-like pseudocode read operation:
