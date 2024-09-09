@@ -61,7 +61,7 @@ module prio_tree #(
   logic [`PLIC_IRQ_WIDTH-1:0] s_idx_lo, s_idx_hi;
 
   generate
-    begin
+    // begin
       if (HIG_IDX - LOW_IDX > 1) begin : PLIC_RECU_GEN_BLOCK
         prio_tree #(
             .LOW_IDX(LOW_IDX),
@@ -87,7 +87,7 @@ module prio_tree #(
         assign s_idx_lo  = id_i[LOW_IDX];
         assign s_idx_hi  = id_i[HIG_IDX];
       end
-    end
+    // end
   endgenerate
 
   assign prio_o = s_prio_lo < s_prio_hi ? s_prio_hi : s_prio_lo;
